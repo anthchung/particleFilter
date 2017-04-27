@@ -21,7 +21,7 @@ close all
 vx = 2; %velocity in x direction
 vy = 2; %velocity in y direction
 t = (0:0.5:100); %time steps
-t2 = (100.5:0.5:200);
+%t2 = (100.5:0.5:200);
 x = vx*t;
 y = vy*t;
 var_system = 1; %noise variance in system
@@ -63,13 +63,13 @@ for time = 2:end_time(2)
     %resample
     probThreshold = 1/(2*n);
     lowProbIndex = find(prob<probThreshold);
-    highProb = find(prob>=probThreshold*2);
+    highProb = find(prob>=probThreshold);
     lowSize = size(lowProbIndex);
     highProbIndex = datasample(highProb,lowSize(2));
     
     %now replace low_prob indexes with newIndex
-    x_particles(lowProbIndex) = x_particles(highProbIndex);
-    y_particles(lowProbIndex) = y_particles(highProbIndex);
+    %x_particles(lowProbIndex) = x_particles(highProbIndex);
+    %y_particles(lowProbIndex) = y_particles(highProbIndex);
     prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
     prob = prob/sum(prob);
     %assign weights to particle, expected position is p(particle)*particle
@@ -101,17 +101,15 @@ xlabel('x metres from starting point'); ylabel('y metres from starting point');
 subplot(1,3,2)
 %plot(t,error);
 plot(t, x_particleArray);
+title('Movement of Particles in the x direction over time');
+xlabel('Metres from starting point in the x direction');
 
 subplot(1,3,3)
 plot(t, y_particleArray)
+title('Movement of Particles in the y direction over time');
+xlabel('Metres from starting point in the y direction');
 
 fprintf('mean error is: %fm\n',mean(error))
-
-%create plot with particles over time
-%subplot(1,2,2)
-%plot(t, particleArray)
-%title('Graph of particles over time')
-%xlabel('Time (s)'); ylabel('Metres from starting position (m)');
 
 %maximise window, code from: http://stackoverflow.com/questions/15286458/automatically-maximize-figure-in-matlab
 drawnow;
