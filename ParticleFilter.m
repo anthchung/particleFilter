@@ -21,6 +21,7 @@ close all
 vx = 2; %velocity in x direction
 vy = 2; %velocity in y direction
 t = (0:0.5:100); %time steps
+t2 = (100.5:0.5:200);
 x = vx*t;
 y = vy*t;
 var_system = 1; %noise variance in system
@@ -43,11 +44,9 @@ x_actual_out = [0];
 y_actual_out = [0];
 x_particleArray = [x_particles];
 y_particleArray = [y_particles];
-%x_error = [0];
-%y_error = [0];
+
 for time = 2:end_time(2)
     %move particles
-    %particles = particles + v*(t(time) - t(prev_time)) + sqrt(var_system)*randn;
     for i = 1:n
         x_particles(i) = x_particles(i) + vx*(t(time) - t(prev_time)) + sqrt(var_system)*randn;
         y_particles(i) = y_particles(i) + vy*(t(time) - t(prev_time)) + sqrt(var_system)*randn;
@@ -57,9 +56,7 @@ for time = 2:end_time(2)
     x_observe = x_actual + sqrt(var_measure)*randn;
     y_observe = y_actual + sqrt(var_measure)*randn;
     %create normal distribution 
-    %prob = (1/sqrt(2*pi*var_measure))*exp(-(particles - mean(particles)).^2/(2*var_measure));
-    %prob = (1/sqrt(2*pi*var_measure))*exp(-(particles - observe).^2/(2*var_measure));
-    prob = (1/sqrt(2*pi*var_measure))*exp(-(x_particles - x_observe+ y_particles - y_observe).^2/(2*var_measure));
+    prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
     prob = prob/sum(prob);
     %prob = 1/n;
    
@@ -69,20 +66,15 @@ for time = 2:end_time(2)
     highProb = find(prob>=probThreshold*2);
     lowSize = size(lowProbIndex);
     highProbIndex = datasample(highProb,lowSize(2));
+    
     %now replace low_prob indexes with newIndex
     x_particles(lowProbIndex) = x_particles(highProbIndex);
     y_particles(lowProbIndex) = y_particles(highProbIndex);
-    prob = (1/sqrt(2*pi*var_measure))*exp(-(x_particles - x_observe+ y_particles - y_observe).^2/(2*var_measure));
+    prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
     prob = prob/sum(prob);
     %assign weights to particle, expected position is p(particle)*particle
     x_position = sum(prob.*x_particles);
     y_position = sum(prob.*y_particles);
-    
-    %replace the particles with low prob index with high prob ones
-    %for probCounter = 0:size(low_prob);
-    %    index = low_prob(probcounter);
-    %    newIndex = randsample(high_prob,1);
-    %end
     
     prev_time = time;
     %change to preallocate array to speed up, use size(t)
@@ -100,21 +92,21 @@ error = sqrt(x_error.^2+y_error.^2);
 %create figure
 figure;
 
-%create plot with positions over time
-%subplot(1,2,1)
-%plot(t, position_out,'X', t, actual_out)
-%title('Estimated and actual positions over time')
-%legend('Estimated position', 'Actual position')
-%xlabel('Time (s)'); ylabel('Metres from starting position (m)');
-subplot(1,2,1)
+subplot(1,3,1)
 plot(x_position_out, y_position_out, 'X', x_actual_out, y_actual_out)
 title('Estimated position from starting point');
 legend('Estimated position', 'Actual position');
 xlabel('x metres from starting point'); ylabel('y metres from starting point');
 
-subplot(1,2,2)
-plot(t,error);
+subplot(1,3,2)
+%plot(t,error);
+plot(t, x_particleArray);
+
+subplot(1,3,3)
+plot(t, y_particleArray)
+
 fprintf('mean error is: %fm\n',mean(error))
+
 %create plot with particles over time
 %subplot(1,2,2)
 %plot(t, particleArray)
