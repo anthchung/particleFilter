@@ -17,6 +17,12 @@ warning('off',id);
 close all
 %clc
 
+B615Lat= -33.91783464;
+B615Long = 151.2304754;
+B616ALat=-33.91798754;
+B616ALong=151.231596;
+
+
 %initialise variables
 vx = 2; %velocity in x direction
 vy = 2; %velocity in y direction
@@ -24,8 +30,8 @@ t = (0:0.5:100); %time steps
 %t2 = (100.5:0.5:200);
 x = vx*t;
 y = vy*t;
-var_system = 1; %noise variance in system
-var_measure = 1; %noise variance in measurement
+var_system = 2; %noise variance in system
+var_measure = 1000; %noise variance in measurement
 
 %initialise particles
 n = 100; %no of particles
@@ -68,8 +74,8 @@ for time = 2:end_time(2)
     highProbIndex = datasample(highProb,lowSize(2));
     
     %now replace low_prob indexes with newIndex
-    %x_particles(lowProbIndex) = x_particles(highProbIndex);
-    %y_particles(lowProbIndex) = y_particles(highProbIndex);
+    x_particles(lowProbIndex) = x_particles(highProbIndex);
+    y_particles(lowProbIndex) = y_particles(highProbIndex);
     prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
     prob = prob/sum(prob);
     %assign weights to particle, expected position is p(particle)*particle
