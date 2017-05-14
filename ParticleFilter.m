@@ -30,7 +30,7 @@ vy = velocity*sin(theta);
 %initialise variables
 %vx = 2; %velocity in x direction
 %vy = 2; %velocity in y direction
-t = (0:0.5:100); %time steps
+t = (0:0.5:40); %time steps
 %t2 = (100.5:0.5:200);
 x = vx*t;
 y = vy*t;
@@ -48,6 +48,7 @@ end
 %particles_moved = particles;
 end_time = size(t);
 prev_time = 1;
+prevNetworkTime = -1;
 x_position_out = [0];
 y_position_out = [0];
 x_actual_out = [0];
@@ -66,36 +67,44 @@ for time = 2:end_time(2)
     end
     
     networkTime = find(networkArray(:,2)<t(time));
-    [m,n]=size(networkTime);
+    [m,o]=size(networkTime);
     lastNetworkTime = networkArray(networkTime(m),2);
+    lastNetworkLat = networkArray(networkTime(m),3);
+    lastNetworkLong = networkArray(networkTime(m),4);
+    [x_network,y_network,d] = diffLatLong(B616ALat,lastNetworkLat, B616ALong, lastNetworkLong);
+    
     x_actual = x(time);
     y_actual = y(time);
-    x_observe = x_actual + sqrt(var_measure)*randn;
-    y_observe = y_actual + sqrt(var_measure)*randn;
+    %x_observe = x_actual + sqrt(var_measure)*randn;
+    %y_observe = y_actual + sqrt(var_measure)*randn;
     %calculate probability only if there is a new network location
     if prevNetworkTime ~=lastNetworkTime
         %create normal distribution 
-        prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
+        %prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
+        prob = (1/sqrt(2*pi*var_measure))*exp(-(sqrt((x_particles-x_network).^2+(y_particles-y_network).^2)).^2/(2*var_measure));
+        prob = prob/sum(prob);
+        %resample
+        probThreshold = 1/(2*n);
+        lowProbIndex = find(prob<probThreshold);
+        highProb = find(prob>=probThreshold);
+        lowSize = size(lowProbIndex);
+        highProbIndex = datasample(highProb,lowSize(2));
+
+        %now replace low_prob indexes with newIndex
+        x_particles(lowProbIndex) = x_particles(highProbIndex);
+        y_particles(lowProbIndex) = y_particles(highProbIndex);
+        %prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
+        prob = (1/sqrt(2*pi*var_measure))*exp(-(sqrt((x_particles-x_network).^2+(y_particles-y_network).^2)).^2/(2*var_measure));
         prob = prob/sum(prob);
     end
     %prob = 1/n;
     %{
-    %resample
-    probThreshold = 1/(2*n);
-    lowProbIndex = find(prob<probThreshold);
-    highProb = find(prob>=probThreshold);
-    lowSize = size(lowProbIndex);
-    highProbIndex = datasample(highProb,lowSize(2));
     
-    %now replace low_prob indexes with newIndex
-    x_particles(lowProbIndex) = x_particles(highProbIndex);
-    y_particles(lowProbIndex) = y_particles(highProbIndex);
-    prob = (1/sqrt(2*pi*var_measure))*exp(-(abs(x_particles - x_observe)+ abs(y_particles - y_observe)).^2/(2*var_measure));
-    prob = prob/sum(prob);
+    %}
     %assign weights to particle, expected position is p(particle)*particle
     x_position = sum(prob.*x_particles);
     y_position = sum(prob.*y_particles);
-    %}
+    
     prev_time = time;
     prevNetworkTime = lastNetworkTime;
     %change to preallocate array to speed up, use size(t)
@@ -110,7 +119,7 @@ end
 x_error = x_position_out - x_actual_out;
 y_error = y_position_out - y_actual_out;
 error = sqrt(x_error.^2+y_error.^2);
-%{
+
 %create figure
 figure;
 
@@ -136,4 +145,3 @@ fprintf('mean error is: %fm\n',mean(error))
 %maximise window, code from: http://stackoverflow.com/questions/15286458/automatically-maximize-figure-in-matlab
 drawnow;
 set(get(handle(gcf),'JavaFrame'),'Maximized',1);
-%}
