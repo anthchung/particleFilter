@@ -47,8 +47,8 @@ prob = 1/n; %initially the particles are equiprobable
 x_particles = zeros(1,n);
 y_particles = zeros(1,n);
 for j = 1:n
-    x_particles(j) = x_gps(1) + sqrt(var_system)*randn; %randn draws random numbers from a normal dist
-    y_particles(j) = y_gps(1) + sqrt(var_system)*randn;
+    x_particles(j) = x(1) + sqrt(var_system)*randn; %randn draws random numbers from a normal dist
+    y_particles(j) = y(1) + sqrt(var_system)*randn;
 end
 %particles_moved = particles;
 end_time = size(t);
@@ -131,7 +131,7 @@ network_error = mean(abs(x_network_error.^2+y_network_error.^2))
 %create figure
 figure;
 
-%subplot(1,3,1)
+subplot(1,3,1)
 plot(x_position_out, y_position_out, 'X',x_networkArray,y_networkArray,'*', x_gps,y_gps,'o');
 title('Estimated position from starting point');
 legend('Estimated position', 'Raw network location', 'GPS location');
