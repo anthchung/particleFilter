@@ -1,3 +1,4 @@
+function [network_error, particle_error] = ParticleFilterFunc(fileNum)
 %summary
 %initalise particles
 %add noise to the particles
@@ -28,14 +29,14 @@ vx = velocity*cos(theta);
 vy = velocity*sin(theta);
 
 %initialise variables
-t = (0:1:105); %time steps
+t = (0:1:100); %time steps
 x = vx*t;
 y = vy*t;
 var_system = 2; %noise variance in system
 var_measure = 100; %noise variance in measurement
 
 %read in the collected data
-[networkArray,gpsArray] = readFunc(6);
+[networkArray,gpsArray] = readFunc(fileNum);
 networkLat = networkArray(:,3);
 networkLong = networkArray(:,4);
 [x_networkArray,y_networkArray,d_network] = diffLatLong(B616ALat,networkLat,B616ALong,networkLong);
@@ -65,7 +66,7 @@ x_particleArray = [x_particles];
 y_particleArray = [y_particles];
 x_network_error = [];
 y_network_error = [];
-error_t=[];
+
 
 
 
@@ -109,13 +110,6 @@ for time = 2:end_time(2)
         y_particles(lowProbIndex) = y_particles(highProbIndex);
         prob = (1/sqrt(2*pi*var_measure))*exp(-(sqrt((x_particles-x_network).^2+(y_particles-y_network).^2)).^2/(2*var_measure));
         prob = prob./sum(prob);
-        
-        x_position_t = sum(prob.*x_particles);
-        y_position_t= sum(prob.*y_particles);
-        x_error_t = x_position_t - x_actual;
-        y_error_t= y_position_t - y_actual;
-        error_t= [error_t sqrt(x_error_t.^2+y_error_t.^2)];
-        
     else
         prob = prob;
     end
@@ -145,27 +139,17 @@ end
 x_error = x_position_out - x_actual_out;
 y_error = y_position_out - y_actual_out;
 error = (x_error.^2+y_error.^2);
-RMSE = sqrt(mean(error));
+particle_error = sqrt(mean(error));
 network_error_array=(x_network_error.^2+y_network_error.^2);
-network_error = sqrt(mean(network_error_array))
+network_error = sqrt(mean(network_error_array));
 %create figure
-figure;
+%figure;
 
 %subplot(1,3,1)
-%plot(x0,y0,'O',x1,y1,'O',x_position_out, y_position_out, 'X',x_networkArray,y_networkArray,'*', x_actual_out,y_actual_out,'-');
-%title('Ouput estimate position from particle filter');
-%legend('Start','End','Estimated position with particle filter', 'Raw network location', 'True location');
-%xlabel('Distance from starting point in the latitude direction (m)'); ylabel('Distance from starting point in the longitude direction (m)');
-
-%plot(x0,y0,'O',x1,y1,'O',x_networkArray,y_networkArray,'*',x_gps,y_gps,'.', x_actual_out,y_actual_out,'-');
-%title('Plot of data collected, converted to metres');
-%legend('Start','End','Wi-Fi locations', 'GPS locations');
-%xlabel('Distance from starting point in the latitude direction (m)'); ylabel('Distance from starting point in the longitude direction (m)');
-
-plot(t,sqrt(error),networkArray(:,2),sqrt(network_error_array),'o-');
-title('Plot of the errors of the particle filter and Wi-Fi location');
-legend('Particle filter error','Wi-Fi location error');
-xlabel('Time (s)');ylabel('Distance from true location (m)');
+%plot(x_position_out, y_position_out, 'X',x_networkArray,y_networkArray,'*', x_gps,y_gps,'o');
+%title('Estimated position from starting point');
+%legend('Estimated position with particle filter', 'Raw network location', 'GPS location');
+%xlabel('x metres from starting point'); ylabel('y metres from starting point');
 %{
 subplot(1,3,2)
 %plot(t,error);
@@ -179,11 +163,8 @@ plot(t, y_particleArray)
 title('Movement of Particles in the y direction over time');
 ylabel('Distance from starting point in the y direction (m)');
 %}
-fprintf('mean error is: %fm\n',sqrt(mean(error)))
-%plot(x_networkArray,y_networkArray,'X',x_particleArray, y_particleArray, '.','MarkerSize',10);
-%title('Progression of particles');
-%xlabel('Horizontal distance from initial position (m)'); ylabel('Vertical distance from initial position (m)');
-%legend('Observations', 'Particles');
+%fprintf('mean error is: %fm\n',mean(error))
+
 %maximise window, code from: http://stackoverflow.com/questions/15286458/automatically-maximize-figure-in-matlab
 %drawnow;
 %set(get(handle(gcf),'JavaFrame'),'Maximized',1);

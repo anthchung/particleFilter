@@ -27,19 +27,20 @@ B616ALong=151.231596;
 
 
 figure
-%scatter(networkLat, networkLong,'x');
+scatter(networkLat, networkLong,'x');
 [dx,dy,d2] = diffLatLong(B616ALat,networkLat,B616ALong,networkLong);
-plot(dx,dy,'*');
-legend('Network location', 'GPS location', 'B616A (start)', 'B615 (end)');
+%plot(dx,dy,'*');
+%legend('Network location', 'GPS location', 'B616A (start)', 'B615 (end)');
+%legend('
 title('Plot of coordinates');
-%xlabel('Latitude (°)');
-%ylabel('Longitude (°)');
+xlabel('Latitude (°)');
+ylabel('Longitude (°)');
 hold on
-%scatter(gpsLat, gpsLong,'*');
+scatter(gpsLat, gpsLong,'*');
 %hold on
-%scatter(B615Lat,B615Long,'o');
-%scatter(B616ALat,B616ALong,'o');
-
+scatter(B615Lat,B615Long,'o');
+scatter(B616ALat,B616ALong,'o');
+legend('Network location', 'GPS location', 'B616A (start)', 'B615 (end)');
 
 %new_latitude  = latitude  + (dy / r_earth) * (180 / pi);
 %new_longitude = longitude + (dx / r_earth) * (180 / pi) / cos(latitude * pi/180);

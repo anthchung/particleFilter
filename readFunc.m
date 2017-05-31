@@ -8,7 +8,12 @@ dataNetwork = csvread(networkFile, 1);
 dataGPS = csvread(gpsFile,1);
 networkNo = dataNetwork(:,1);
 networkTime = dataNetwork(:,2);
-networkTime = (networkTime-networkTime(1))./1e9;
+if fileNum <=11
+    networkTime = (networkTime-networkTime(1))./1e9;
+end
+if fileNum >=12
+    networkTime = (networkTime-networkTime(1));
+end
 networkLat = dataNetwork(:,3);
 networkLong = dataNetwork(:,4);
 networkAcc = dataNetwork(:,5);
